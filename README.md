@@ -1,199 +1,185 @@
-# Splunk para Analistas SOC
+# Splunk para Analistas SOC (Guía Técnica)
+
+Guía Práctica y Referencia Avanzada de Splunk para Operaciones del Centro de Seguridad (SOC)
 
 ---
 
-## Visión General
+## ⚙️ Capacidades Clave de Splunk para el SOC
 
-Splunk es una plataforma avanzada para el análisis de grandes volúmenes de datos y la gestión de logs, diseñada especialmente para monitorear, analizar y visualizar datos en tiempo real. Es una herramienta esencial en el campo de la ciberseguridad, particularmente en funciones de SIEM (Gestión de Información y Eventos de Seguridad), donde ayuda a identificar y responder a incidentes de seguridad.
+Splunk es la plataforma central para muchas operaciones de SOC, permitiendo:
 
----
-
-## Funcionalidades
-
-### Monitoreo en Tiempo Real
-Splunk permite la visualización de eventos y métricas en tiempo real, lo que proporciona una capacidad crítica para la detección inmediata de amenazas y anomalías en la infraestructura de TI. A través de dashboards personalizables, los usuarios pueden observar de manera directa el comportamiento de sistemas y redes.
-
-### Análisis de Datos
-Con Splunk, es posible realizar análisis detallados sobre grandes volúmenes de datos, permitiendo descubrir patrones, correlacionar eventos y extraer información valiosa para la toma de decisiones en seguridad. La plataforma es capaz de procesar datos estructurados y no estructurados, lo que la convierte en una solución flexible y escalable.
-
-### Integración con Otras Herramientas
-Splunk cuenta con una amplia gama de Apps y Add-ons que permiten integrar fuentes de datos externas y herramientas de seguridad. Esta integración permite centralizar los análisis y obtener una visión unificada de los eventos de seguridad.
+* **Monitorización y Alertas en Tiempo Real:** Detectar amenazas y anomalías al instante mediante dashboards y alertas correlacionadas.
+* **Investigación Profunda y Threat Hunting:** Analizar terabytes de datos para seguir rastros, buscar IOCs y descubrir ataques complejos.
+* **Soporte a la Respuesta a Incidentes (IR):** Facilitar el análisis forense, la determinación del alcance y la causa raíz de los incidentes.
+* **Inteligencia y Visualización de Datos:** Generar insights sobre la postura de seguridad, tendencias y cumplimiento a través de informes y visualizaciones.
+* **Integración del Ecosistema de Seguridad:** Unificar la visibilidad y coordinar acciones conectando con EDR, Firewalls, Intel de Amenazas, SOAR, etc.
 
 ---
 
-## Casos de Uso
+## 🎯 Casos de Uso Críticos en el SOC
 
-### Gestión de Logs
-La recolección, indexación y análisis de logs es uno de los casos de uso más comunes en Splunk. La plataforma puede ingerir logs de múltiples fuentes (servidores, dispositivos de red, aplicaciones) y proporcionar análisis detallados sobre estos datos. Los logs son esenciales para identificar patrones de comportamiento y eventos anómalos.
+Splunk es vital para tareas como:
 
-### SIEM con Splunk
-Splunk actúa como un potente SIEM, centralizando los eventos de seguridad para su análisis y correlación. La plataforma permite a los equipos de seguridad detectar amenazas, responder rápidamente a incidentes y automatizar acciones basadas en alertas y reglas personalizadas.
-
-### Respuesta a Incidentes
-Splunk también es una herramienta invaluable en la respuesta a incidentes, permitiendo a los analistas de seguridad investigar en profundidad los eventos registrados, identificar la causa raíz de los incidentes y realizar un seguimiento de las acciones correctivas. Además, la plataforma facilita la generación de informes detallados para su documentación.
+1.  **Detección de Amenazas (SIEM):** Correlacionar eventos, aplicar reglas de detección (ES, personalizadas), identificar anomalías (UBA).
+2.  **Gestión Centralizada de Logs:** Ingesta, normalización (CIM), indexación y búsqueda eficiente para análisis y cumplimiento.
+3.  **Investigación de Incidentes:** Analizar logs relevantes, reconstruir cronologías, identificar entidades implicadas.
+4.  **Threat Hunting Proactivo:** Búsqueda basada en hipótesis (MITRE ATT&CK), búsqueda de IOCs, identificación de actividades inusuales.
+5.  **Monitorización de Seguridad Continua:** Vigilancia de accesos, cambios críticos, tráfico de red sospechoso.
+6.  **Cumplimiento y Auditoría:** Generación de informes normativos y auditoría de actividades.
 
 ---
 
-## Comandos de Splunk
+## 🔥 Comandos de Splunk (SPL)
+
+Dominar **SPL (Search Processing Language)** es fundamental. A continuación, una referencia de comandos útiles organizados por categoría.
 
 ### Comandos Básicos
 
-* Comando:
+* **Filtrar por Índice (`index`):** Selecciona el contenedor de datos donde buscar. Fundamental para empezar.
     ```spl
-    index="main"
+    index="wineventlog"
     ```
-    Descripción: Filtra los eventos del índice "main". Utilizado para trabajar con datos específicos de un índice.
-* Comando:
+* **Filtrar por Fuente (`source`):** Especifica el archivo o ruta de origen de los datos.
     ```spl
-    source="logfile.log"
+    source="/var/log/secure"
     ```
-    Descripción: Filtra los eventos provenientes de un archivo de log específico.
-* Comando:
+* **Filtrar por Tipo de Fuente (`sourcetype`):** Filtra por el tipo de dato definido durante la ingesta (afecta cómo se parsean los campos).
     ```spl
-    sourcetype="json"
+    sourcetype="cisco:asa"
     ```
-    Descripción: Filtra eventos según el tipo de fuente, como "json".
-* Comando:
+* **Filtrar por Host (`host`):** Selecciona eventos de una máquina específica.
     ```spl
-    host="server1"
+    host="srv-dc01"
     ```
-    Descripción: Filtra los eventos provenientes de un host específico.
-* Comando:
+* **Búsqueda por Palabra Clave:** Busca términos específicos en los eventos (AND implícito entre términos). Usa comillas para frases.
     ```spl
-    *error*
+    "failed login" user="admin"
     ```
-    Descripción: Realiza una búsqueda de eventos que contengan la palabra "error".
-* Comando:
+* **Filtrar por Valor de Campo:** Busca un valor exacto en un campo extraído (sensible a mayúsculas).
     ```spl
-    status=200
+    status=404 action="blocked"
     ```
-    Descripción: Filtra los eventos en los que el campo "status" tenga el valor 200 (respuesta exitosa HTTP).
-* Comando:
+* **Comando `stats` (Básico):** Realiza agregaciones estadísticas. El más simple es contar eventos.
     ```spl
-    | stats count
+    index=firewall | stats count
     ```
-    Descripción: Realiza una agregación básica, contando la cantidad de eventos en el conjunto de datos filtrados.
 
-### Comandos de Búsqueda Avanzada
+### Comandos de Búsqueda Avanzada (Transformación)
 
-* Comando:
+* **`stats` (Agregación):** Calcula estadísticas agrupadas por campos.
+    * Descripción: Cuenta eventos del índice "main" (sourcetype json) agrupados por el campo "status".
     ```spl
     index="main" sourcetype="json" | stats count by status
     ```
-    Descripción: Filtra eventos por el índice "main" y el sourcetype "json", luego realiza un conteo de eventos agrupados por "status".
-* Comando:
+* **`top` (Valores Más Frecuentes):** Muestra los N valores más comunes de un campo.
+    * Descripción: Busca eventos con "error" en el índice "main" y muestra las 10 `source` más frecuentes.
     ```spl
-    index="main" error | top 10 source
+    index="main" error | top limit=10 source
     ```
-    Descripción: Filtra eventos que contienen la palabra "error" y muestra las 10 principales fuentes de esos eventos.
-* Comando:
+* **`timechart` (Gráficos Temporales):** Genera gráficos de series temporales.
+    * Descripción: Cuenta eventos por hora en el índice "security". Ideal para ver tendencias.
     ```spl
     index="security" | timechart span=1h count
     ```
-    Descripción: Muestra una gráfica con la cantidad de eventos por hora, útil para analizar eventos temporales.
-* Comando:
+* **`stats` (Funciones Estadísticas):** Calcula promedios, sumas, máximos, mínimos, etc.
+    * Descripción: Calcula el tamaño promedio en bytes (`avg(bytes)`) para cada `host` en el índice "logs".
     ```spl
     index="logs" | stats avg(bytes) by host
     ```
-    Descripción: Calcula el promedio de "bytes" por cada host, ideal para analizar el volumen de datos por servidor.
-* Comando:
+* **`dedup` (Eliminar Duplicados):** Elimina eventos duplicados basados en los valores de ciertos campos.
+    * Descripción: Mantiene solo un evento por cada valor único del campo `source`.
     ```spl
     index="main" | dedup source
     ```
-    Descripción: Elimina registros duplicados basados en el campo "source".
 
-### Comandos de Seguridad
+### Comandos de Seguridad Específicos
 
-* Comando:
+* **Contar por Host (Syslog):** Analiza la volumetría de logs por host.
     ```spl
     index="security" sourcetype="syslog" | stats count by host
     ```
-    Descripción: Filtra eventos de tipo "syslog" en el índice "security" y muestra un conteo agrupado por host.
-* Comando:
+* **Valores Únicos por Acción (Firewall):** Muestra las IPs únicas asociadas a acciones como 'allow' o 'deny'.
     ```spl
-    index="firewall" | stats values(ip) by action
+    index="firewall" | stats values(src_ip) as SourceIPs by action
     ```
-    Descripción: Muestra las IP asociadas con cada acción del firewall (permitir o bloquear), útil para detectar intentos sospechosos.
-* Comando:
+* **Conteo de Logins Fallidos por Usuario:** Identifica usuarios con múltiples intentos fallidos.
     ```spl
-    index="security" | search "failed login" | stats count by user
+    index="security" sourcetype="WinEventLog:Security" EventCode=4625 Account_Name!="*$" | stats count by Account_Name | sort - count
     ```
-    Descripción: Busca eventos con "failed login" y agrupa el conteo por usuario.
-* Comando:
+* **Búsqueda de Fuerza Bruta:** Busca términos asociados a ataques de fuerza bruta.
     ```spl
-    index="security" | search "brute force" | stats count
+    index="security" ("brute force" OR "password spraying") | stats count
     ```
-    Descripción: Busca eventos con "brute force" para identificar intentos de ataque por fuerza bruta.
-* Comando:
+* **Contar Bloqueos de Firewall por IP:** Identifica IPs origen que generan más tráfico bloqueado.
     ```spl
-    index="firewall" | search "blocked" | stats count by ip
+    index="firewall" action=blocked | stats count by src_ip | sort - count
     ```
-    Descripción: Filtra eventos de firewall que indican tráfico bloqueado y muestra la cantidad de intentos por IP.
 
 ### Comandos de Tiempo y Ordenación
 
-* Comando:
+* **Selección Relativa de Tiempo (`earliest`, `latest`):** Filtra por tiempo relativo a ahora.
     ```spl
-    index="main" | earliest=-24h@h latest=now
+    index="main" earliest=-24h@h latest=now
     ```
-    Descripción: Filtra eventos ocurridos en las últimas 24 horas, ideal para obtener eventos recientes.
-* Comando:
+* **Selección Absoluta de Tiempo (`earliest`, `latest`):** Filtra por un rango de fechas/horas específico.
     ```spl
-    index="main" | earliest="2024-12-01T00:00:00" latest="2024-12-05T23:59:59"
+    index="main" earliest="2024-12-01T00:00:00" latest="2024-12-05T23:59:59"
     ```
-    Descripción: Filtra eventos dentro de un rango de fechas específico, útil para auditorías.
-* Comando:
+* **Ordenar Resultados (`sort`):** Ordena los eventos. `-` para descendente, `+` (u omitido) para ascendente.
     ```spl
-    index="main" | sort - _time
+    index="main" | sort - _time  # Más reciente primero
     ```
-    Descripción: Ordena los eventos por el campo "_time" en orden descendente, mostrando los eventos más recientes.
-* Comando:
     ```spl
-    index="main" | sort + bytes
+    index="main" | sort +bytes, -count # Ordena por bytes (asc), luego por count (desc)
     ```
-    Descripción: Ordena los eventos por el campo "bytes" en orden ascendente, útil para detectar picos de tráfico.
-* Comando:
+* **Limitar Resultados (`head`, `tail`):** Muestra solo los primeros o últimos N resultados.
     ```spl
-    index="main" | head 10
+    index="main" | head 10 # Primeros 10
     ```
-    Descripción: Muestra los primeros 10 eventos de la búsqueda actual, ideal para un resumen rápido.
+    ```spl
+    index=main | sort _time | tail 5 # Últimos 5 (después de ordenar por tiempo asc)
+    ```
 
-### Comandos de Agregación y Análisis
+### Comandos de Agregación y Análisis Adicionales
 
-* Comando:
+* **`stats` (Suma):** Suma valores numéricos.
+    * Descripción: Suma los `bytes` para cada `host` en el índice "web".
     ```spl
-    index="web" | stats sum(bytes) by host
+    index="web" | stats sum(bytes) as total_bytes by host
     ```
-    Descripción: Suma los valores de "bytes" por cada host, útil para ver el volumen de datos procesados por cada servidor.
-* Comando:
+* **`timechart` (Promedio):** Calcula promedios a lo largo del tiempo.
+    * Descripción: Muestra el promedio de `bytes` por hora en el índice "web".
     ```spl
     index="web" | timechart span=1h avg(bytes)
     ```
-    Descripción: Muestra una gráfica con el promedio de bytes procesados por hora, ideal para detectar tendencias de tráfico.
-* Comando:
+* **`top` (Valores Frecuentes):** Variante simple de `stats count by field | sort - count | head N`.
+    * Descripción: Muestra las 10 `src_ip` más frecuentes en el índice "security".
     ```spl
-    index="security" | top 10 src_ip
+    index="security" | top limit=10 src_ip
     ```
-    Descripción: Muestra las 10 direcciones IP de origen más frecuentes, útil para detectar posibles puntos de origen de ataques.
-* Comando:
+* **`stats` (Agrupación Múltiple):** Agrupa por más de un campo.
+    * Descripción: Cuenta eventos agrupando por `status` y `host`.
     ```spl
     index="main" | stats count by status, host
     ```
-    Descripción: Realiza un conteo de eventos por "status" y agrupa por "host", ideal para el análisis de errores por servidor.
-* Comando:
+* **`chart` (Gráficos Categóricos):** Similar a `stats` pero optimizado para gráficos (ej. barras apiladas).
+    * Descripción: Genera datos para un gráfico de eventos por `status` a lo largo del tiempo.
     ```spl
     index="main" | chart count over _time by status
     ```
-    Descripción: Genera un gráfico de barras con la cantidad de eventos agrupados por "status" a lo largo del tiempo.
 
 ---
 
-## Recursos Adicionales
+## 📚 Recursos Adicionales
 
-* Documentación Oficial de Splunk: Guías detalladas sobre el uso de Splunk para diversas aplicaciones de seguridad y análisis de datos.
-* Splunk Community: Comunidad activa de usuarios que comparten conocimientos y resuelven problemas.
-* Splunk Education: Cursos y certificaciones sobre el uso de Splunk.
-* TryHackMe: Laboratorios prácticos y desafíos de ciberseguridad.
-* Hack The Box: Desafíos interactivos y pruebas de penetración.
+* **Documentación Oficial de Splunk:** [https://docs.splunk.com/Documentation](https://docs.splunk.com/Documentation) - Guías detalladas sobre el uso de Splunk.
+* **Splunk Community:** [https://community.splunk.com/](https://community.splunk.com/) - Comunidad activa para compartir conocimientos y resolver dudas.
+* **Splunk Education:** [https://www.splunk.com/en_us/training.html](https://www.splunk.com/en_us/training.html) - Cursos y certificaciones oficiales.
+* **TryHackMe:** [https://tryhackme.com/](https://tryhackme.com/) - Laboratorios prácticos y desafíos de ciberseguridad (incluye salas de Splunk).
+* **Hack The Box:** [https://www.hackthebox.com/](https://www.hackthebox.com/) - Desafíos interactivos y pruebas de penetración (algunos escenarios usan Splunk).
 
 ---
+
+## ❓ Contribuciones y Feedback
+
+¿Ideas, correcciones, mejoras? Abre un **Issue** o un **Pull Request**. ¡Este recurso es para la comunidad SOC!
